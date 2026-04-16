@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>UCL Player Goal Predictor – E-Poster</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:wght@700&family=Source+Sans+3:wght@300;400;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    /* Base Colors */
+    --nv:#1a2b3c; --bg:#f4f6f9; --wh:#ffffff; --tx:#2c3e50; --mu:#5a6c7d; --bd:#d1d8e0;
+    
+    /* Model Specific Colors */
+    --lr-dk:#0d233a; --lr-lt:#153a61; --lr-tx:#d9e8f5;
+    --rf-dk:#113b22; --rf-lt:#1b5e36; --rf-tx:#d9f5e3;
+    --xgb-dk:#3a1f0a; --xgb-lt:#5e3210; --xgb-tx:#f5e5d9;
+    
+    /* Highlight & Tags */
+    --tag-bl:#1f4266; --tag-rd:#5c1a1a;
+    --win-bg:#e2f0e6; --win-tx:#114a27;
+
+    /* Legacy mapping */
+    --pu: #2c3e50; --ac: #3498db;
+  }
+  html,body{width:100%;height:auto;min-height:100%;background:#eef1f5;padding:6mm;font-family:'Source Sans 3',sans-serif;font-size:9px;line-height:1.35;color:var(--tx)}
+  .poster{max-width:287mm;margin:0 auto;background:var(--wh);border:1px solid #b8c4d1;display:flex;flex-direction:column;overflow:visible}
+
+  /* HEADER */
+  .hdr{background:var(--nv);display:grid;grid-template-columns:52px 1fr 52px;align-items:center;gap:7px;padding:4px 12px;border-bottom:3px solid var(--ac);flex-shrink:0}
+  .logo{width:46px;height:46px;background:var(--pu);border:1.5px solid var(--mu);border-radius:4px;display:flex;align-items:center;justify-content:center}
+  .hc{text-align:center}
+  .hc h1{font-family:'EB Garamond',serif;font-size:17px;font-weight:700;color:var(--wh);line-height:1.1;margin-bottom:1px}
+  .hc .sub{font-size:7.5px;color:#bdc3c7;margin-bottom:2px}
+  .hc .auth{font-size:9px;color:var(--wh);font-weight:600}
+  .hc .aff{font-size:7.5px;color:#95a5a6}
+  .badge{width:46px;height:46px;background:var(--pu);border:1.5px solid var(--mu);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
+  .badge .st{font-size:13px;color:#f1c40f}
+  .badge .bt{font-size:5.5px;font-weight:700;color:var(--wh);letter-spacing:.5px;line-height:1.2}
+
+  /* BODY GRID */
+  .body{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:4px;overflow:visible}
+  .box{border:1px solid var(--bd);border-radius:3px;overflow:visible;background:var(--wh);display:flex;flex-direction:column;break-inside:avoid;page-break-inside:avoid}
+  .bh{background:var(--nv);color:var(--wh);font-size:7.5px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;padding:3px 7px;border-bottom:1.5px solid var(--ac);flex-shrink:0}
+  .bh.pu{background:var(--pu);color:var(--wh);border-bottom-color:var(--ac)}
+  .bh.dk{background:#34495e;color:var(--wh);border-bottom-color:#95a5a6}
+  .bh.ac{background:#1f3a54;color:var(--wh);border-bottom-color:#bdc3c7}
+  .bb{padding:4px 6px;background:var(--bg);font-size:8px;overflow:visible}
+  .bb p{margin-bottom:3px}
+  .bb ul{padding-left:11px;margin-bottom:3px}
+  .bb ul li{margin-bottom:1px}
+  .bb h4{color:var(--tx);font-size:8px;font-weight:700;margin:3px 0 2px;border-bottom:1px solid var(--bd);padding-bottom:1px}
+  .hl{color:#2980b9;font-weight:700}
+  .bl{color:#16a085;font-weight:600}
+  .s2{grid-column:span 2}
+
+  /* DATASET TABLE */
+  table.ds{width:100%;border-collapse:collapse;font-size:8px;margin-top:3px}
+  table.ds th{background:#34495e;color:#fff;padding:2px 4px;text-align:left;font-weight:600}
+  table.ds td{padding:2px 4px;border-bottom:.5px solid var(--bd);vertical-align:top}
+  table.ds tr:nth-child(even) td{background:#f8f9fa}
+
+  /* STAT CARDS */
+  .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;margin-top:4px}
+  .sc{background:var(--pu);color:#bdc3c7;border-radius:3px;padding:4px;text-align:center}
+  .sc .n{font-size:14px;font-weight:700;color:var(--wh);line-height:1}
+  .sc .l{font-size:7px;text-transform:uppercase;letter-spacing:.4px;margin-top:1px}
+
+  /* BAR */
+  .br{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+  .bl2{font-size:8.5px;width:86px;text-align:right;color:#1f2d3a;font-weight:700;flex-shrink:0}
+  .bw{flex:1;height:16px;background:#dfe6ef;border-radius:3px;overflow:hidden;position:relative;border:1px solid #c8d3e0}
+  .bf{height:100%;border-radius:2px}
+  .bv{position:absolute;right:5px;top:50%;transform:translateY(-50%);font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,0.25)}
+
+  /* PREP */
+  .pg{display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-top:3px}
+  .pi{background:#f1f3f5;color:var(--tx);border-radius:2px;padding:3px 5px;font-size:7.5px;line-height:1.3;border-left:2px solid var(--ac);border-bottom:1px solid #e2e6ea}
+  .pi .sn{font-size:6.5px;color:#2980b9;font-weight:700;letter-spacing:.8px;display:block;margin-bottom:1px}
+  .pi small{color:var(--mu)}
+
+  /* PIPELINE */
+  .pl{display:flex;align-items:center;gap:2px;margin-bottom:6px}
+  .ps{flex:1;background:var(--nv);color:var(--wh);font-size:7px;font-weight:600;text-align:center;padding:4px 2px;border-radius:2px;line-height:1.2;position:relative}
+  .ps::after{content:'';position:absolute;right:-5px;top:50%;transform:translateY(-50%);border:4px solid transparent;border-left-color:var(--nv);z-index:2}
+  .ps:last-child::after{display:none}
+  .ps.hi{background:var(--ac);border:1px solid #e8e0ff}
+
+  /* MODEL CARDS */
+  .mc{border-radius:3px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+  .mh{padding:4px 7px;font-size:8.5px;font-weight:700;color:var(--wh)}
+  .mb{padding:6px 7px;font-size:8px;line-height:1.5}
+  .mb b{color:var(--wh)}
+  .mb hr{border-color:rgba(255,255,255,0.2);margin:3px 0}
+  .mb span{font-size:7.5px}
+
+  /* RESULTS TABLE */
+  table.rt{width:100%;border-collapse:collapse;font-size:8.5px;margin-top:3px}
+  table.rt th{background:#f1f3f5;color:var(--tx);padding:3px 6px;text-align:center;font-weight:700;font-size:8px;border-bottom:1px solid var(--bd)}
+  table.rt td{padding:3px 6px;text-align:center;border-bottom:.5px solid var(--bd)}
+  table.rt tr:nth-child(even) td{background:#f8f9fa}
+  table.rt .best{color:var(--win-tx);font-weight:700;background:var(--win-bg)!important}
+
+  /* CM */
+  .cmw{display:flex;justify-content:center;margin:4px 0}
+  .cmg{display:grid;grid-template-columns:26px 52px 52px;grid-template-rows:16px 36px 36px;gap:2px;font-size:8px}
+  .cc{display:flex;align-items:center;justify-content:center;text-align:center;border-radius:2px;font-weight:600;font-size:8.5px}
+  .ch{font-size:7.5px;font-weight:700;color:var(--tx);background:#f1f3f5}
+  .ctp{background:#1b7a43;color:#fff}
+  .ctn{background:#246573;color:#fff}
+  .cfp{background:#fce0e3;color:#c0392b}
+  .cfn{background:#fdf0e3;color:#d35400}
+  .cx{font-size:7px;color:var(--mu);font-weight:600}
+
+  /* FEAT BARS */
+  .fb{display:flex;align-items:center;gap:4px;margin-bottom:3px}
+  .fn2{font-size:7.5px;width:80px;text-align:right;color:var(--tx);font-weight:600;flex-shrink:0}
+  .fw{flex:1;height:12px;background:#e9ecef;border-radius:2px;overflow:hidden}
+  .ff{height:100%;background:#1e5b99;border-radius:2px}
+  .fp{font-size:7.5px;color:var(--mu);width:28px;flex-shrink:0;font-weight:600}
+
+  /* TAGS */
+  .tag{background:var(--tag-bl);color:#d9e8f5;border-radius:2px;padding:2px 5px;font-size:7.5px;display:inline-block;margin:1px 1px}
+  .tgd{background:var(--tag-rd);color:#f5d9d9;border-radius:2px;padding:2px 5px;font-size:7.5px;display:inline-block;margin:1px 1px}
+
+  /* CONCLUSION */
+  .ci{display:flex;gap:5px;align-items:flex-start;margin-bottom:4px}
+  .ico{width:13px;height:13px;flex-shrink:0;background:#27ae60;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px;color:#fff}
+  .ico svg{width:9px;height:9px}
+
+  /* REFS */
+  .rl{list-style:none;padding:0}
+  .rl li{font-size:8px;padding:2px 0 2px 13px;border-bottom:.5px solid var(--bd);position:relative;line-height:1.3;color:var(--mu)}
+  .rl li::before{content:attr(data-n);position:absolute;left:0;color:var(--ac);font-weight:700}
+
+  @media print{
+    html,body{padding:0;background:#fff}
+    .poster{max-width:none;width:auto;border:none}
+    .body{gap:3mm;padding:3mm}
+    .box{break-inside:avoid;page-break-inside:avoid}
+    @page{size:A4 landscape;margin:8mm}
+  }
+</style>
+</head>
+<body>
+<div class="poster">
+
+  <div class="hdr">
+    <div class="logo">
+      <svg width="38" height="38" viewBox="0 0 52 52" fill="none">
+        <circle cx="26" cy="26" r="22" stroke="#bdc3c7" stroke-width="2"/>
+        <polygon points="26,8 30,20 42,20 33,28 36,40 26,33 16,40 19,28 10,20 22,20" fill="none" stroke="#bdc3c7" stroke-width="1.5"/>
+        <text x="26" y="48" text-anchor="middle" font-size="6" fill="#ffffff" font-family="sans-serif" font-weight="700">ML</text>
+      </svg>
+    </div>
+    <div class="hc">
+      <h1>⚽ UCL Player Goal Predictor</h1>
+      <p class="sub">A Machine Learning Approach to Classify High-Scoring Players in the UEFA Champions League</p>
+      <p class="auth">Aryan Dev Tyagi </p>
+      <p class="aff">Course: BCAI-601-MLT · Machine Learning Techniques · 2025–26</p>
+    </div>
+    <div class="badge"><div class="st">★</div><div class="bt">UEFA<br>CHAMPIONS<br>LEAGUE</div></div>
+  </div>
+
+  <div class="body">
+
+    <div class="box">
+      <div class="bh">Problem Statement</div>
+      <div class="bb">
+        <p>This project predicts <span class="hl">high-goal-scorers</span> for UCL using player attacking statistics.</p>
+        <p>Goal: classify players from <span class="bl">shot and attacking behaviour</span> before final goal totals are known.</p>
+        <h4>Research Questions</h4>
+        <ul>
+          <li>Can pre-game stats reliably predict whether a UCL player will be a high scorer?</li>
+          <li>Which features carry the most predictive power?</li>
+          <li>Which classifier best generalises to unseen player data?</li>
+        </ul>
+        <h4>Task Formulation</h4>
+        <p><span class="bl">Binary Classification</span> — Players scoring ≥ 70th-percentile labelled <span class="hl">High Scorer (1)</span>; rest are <span class="hl">Low Scorer (0)</span>.</p>
+        <h4>Prediction Scope</h4>
+        <ul>
+          <li><b>Input:</b> attempts, on-target shots, assists, dribbles, and match participation stats.</li>
+          <li><b>Output:</b> class probability and final label (<code>0</code> or <code>1</code>).</li>
+          <li><b>Use case:</b> early scouting support before final season goal totals stabilize.</li>
+        </ul>
+        <p style="font-size:7.5px;color:var(--mu);"><b>Practical note:</b> this model supports analyst decisions and should be used with contextual football judgment (role, minutes, opposition, and tactics).</p>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bh pu">Dataset Description</div>
+      <div class="bb">
+        <p>Three CSVs from <span class="hl">Kaggle – UCL 2021/22</span> player statistics.</p>
+        <p style="font-size:7.5px;color:var(--ac);">🔗 <a href="https://www.kaggle.com/datasets/azminetoushikwasi/ucl-202122-uefa-champions-league" style="color:var(--ac);">kaggle.com/…/ucl-202122-uefa-champions-league</a></p>
+        <table class="ds">
+          <tr><th>File</th><th>Rows</th><th>Key Columns</th></tr>
+          <tr><td><b>attacking.csv</b></td><td>~176</td><td>player_name, position, assists, dribbles</td></tr>
+          <tr><td><b>attempts.csv</b></td><td>~546</td><td>total_attempts, on_target, off_target, blocked</td></tr>
+          <tr><td><b>goals.csv</b></td><td>~183</td><td>goals, right_foot, left_foot, headers, penalties</td></tr>
+        </table>
+        <div class="stats">
+          <div class="sc"><div class="n">546</div><div class="l">Players</div></div>
+          <div class="sc"><div class="n">11</div><div class="l">Features</div></div>
+          <div class="sc"><div class="n">1</div><div class="l">Target</div></div>
+        </div>
+        <h4>Target Distribution</h4>
+        <div class="br"><div class="bl2">Low Scorer (0)</div><div class="bw"><div class="bf" style="width:79%;background:#375069;"><span class="bv">432 (79%)</span></div></div></div>
+        <div class="br"><div class="bl2">High Scorer (1)</div><div class="bw"><div class="bf" style="width:21%;background:#2980b9;"><span class="bv">114 (21%)</span></div></div></div>
+        <p style="font-size:8px;color:#4b5d70;font-style:italic;font-weight:600;">*70th percentile threshold; 0-goal concentration shifts ratio to 79/21.</p>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bh dk">Data Preprocessing</div>
+      <div class="bb">
+        <div class="pg">
+          <div class="pi"><span class="sn">STEP 01</span>Column Normalisation<br><small>Lowercase, strip, underscores</small></div>
+          <div class="pi"><span class="sn">STEP 02</span>Name Standardisation<br><small>Lowercase + strip merge keys</small></div>
+          <div class="pi"><span class="sn">STEP 03</span>Dataset Merging<br><small>attempts ▶ goals ▶ attacking</small></div>
+          <div class="pi"><span class="sn">STEP 04</span>Duplicate Removal<br><small>Drop duplicate club/position cols</small></div>
+          <div class="pi"><span class="sn">STEP 05</span>Missing Imputation<br><small>Numeric: mean; goals: 0</small></div>
+          <div class="pi"><span class="sn">STEP 06</span>Position Encoding<br><small>One-hot, drop first</small></div>
+          <div class="pi"><span class="sn">STEP 07</span>Feature Engineering<br><small>shot_accuracy = on_target/attempts</small></div>
+          <div class="pi"><span class="sn">STEP 08</span>Leakage Removal<br><small>Drop goal_conversion, foot cols</small></div>
+        </div>
+        <h4>Train / Test Split</h4>
+        <div style="display:flex;gap:4px;margin-top:3px;">
+          <div style="flex:4;background:#34495e;border-radius:3px;padding:4px;text-align:center;color:#ecf0f1;font-size:8px;font-weight:700;">TRAIN — 80% (436 Players) &nbsp;<small style="color:#bdc3c7;font-weight:400;">seed=42</small></div>
+          <div style="flex:1;background:#2c3e50;border-radius:3px;padding:4px;text-align:center;color:#ecf0f1;font-size:8px;font-weight:700;">TEST<br>20%</div>
+        </div>
+        <p style="margin-top:3px;font-size:7.5px;color:var(--mu);">StandardScaler for LR only; trees use raw scales.</p>
+      </div>
+    </div>
+
+    <div class="box s2">
+      <div class="bh ac">Method — Classification Model Architecture &amp; Parameters</div>
+      <div class="bb">
+        <div class="pl">
+          <div class="ps" style="background:#113254;">Raw CSVs<br><span style="font-size:6px;color:#aeb8c4;">(3 files)</span></div>
+          <div style="width:8px;"></div>
+          <div class="ps" style="background:#145230;">Merge &amp;<br>Clean</div>
+          <div style="width:8px;"></div>
+          <div class="ps" style="background:#4a2b10;">Feature<br>Engineer</div>
+          <div style="width:8px;"></div>
+          <div class="ps" style="background:#3d1a54;">Encode &amp;<br>Scale</div>
+          <div style="width:8px;"></div>
+          <div class="ps" style="background:#153d6e;">Train<br>Models</div>
+          <div style="width:8px;"></div>
+          <div class="ps" style="background:#6b1a1f;">Evaluate<br>Accuracy</div>
+          <div style="width:8px;"></div>
+          <div class="ps hi" style="flex:1.3; background:#145230; border:1px solid #73b58f; color:#ffffff;">⭐ Best Model<br>Selection</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:6px;">
+          <div class="mc" style="border:1px solid var(--lr-dk); background:var(--lr-lt);">
+            <div class="mh" style="background:var(--lr-dk);">① Logistic Regression</div>
+            <div class="mb" style="color:var(--lr-tx);">
+              <b>Type:</b> Linear Classifier &nbsp;<b>Solver:</b> lbfgs &nbsp;<b>Reg:</b> L2 (C=1.0)<br>
+              <b>Max Iter:</b> 100 &nbsp;<b>Input:</b> StandardScaler features<br>
+              <hr><span style="color:#b3cce6;">Baseline — fast, interpretable. Linear decision boundary.</span>
+            </div>
+          </div>
+          <div class="mc" style="border:1px solid var(--rf-dk); background:var(--rf-lt);">
+            <div class="mh" style="background:var(--rf-dk);">② Random Forest</div>
+            <div class="mb" style="color:var(--rf-tx);">
+              <b>Type:</b> Ensemble (Bagging) &nbsp;<b>n_estimators:</b> 100 trees<br>
+              <b>Criterion:</b> Gini &nbsp;<b>Max Depth:</b> None &nbsp;<b>Bootstrap:</b> True<br>
+              <hr><span style="color:#b3e6c9;">100 trees via majority voting. Robust + feature importances.</span>
+            </div>
+          </div>
+          <div class="mc" style="border:1px solid var(--xgb-dk); background:var(--xgb-lt);">
+            <div class="mh" style="background:var(--xgb-dk);">③ XGBoost</div>
+            <div class="mb" style="color:var(--xgb-tx);">
+              <b>Type:</b> Gradient Boosting &nbsp;<b>n_estimators:</b> 100<br>
+              <b>LR:</b> 0.3 &nbsp;<b>Max Depth:</b> 6 &nbsp;<b>Eval:</b> logloss<br>
+              <hr><span style="color:#e6c9b3;">Sequential boosting — each tree corrects prior errors.</span>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:8px;font-weight:700;color:var(--tx);margin-bottom:3px;">Final 11 Features (after leakage removal):</p>
+        <div>
+          <span class="tag">total_attempts</span><span class="tag">on_target</span><span class="tag">off_target</span><span class="tag">blocked</span><span class="tag">match_played</span><span class="tag">match_played_goal</span><span class="tag">assists</span><span class="tag">corner_taken</span><span class="tag">offsides</span><span class="tag">dribbles</span><span class="tag" style="border:1px solid #8ab8e6; color:#ffffff;">shot_accuracy ✦</span>
+          <span class="tgd">✗ goals</span><span class="tgd">✗ goal_conversion</span><span class="tgd">✗ goal_per_match</span><span class="tgd">✗ right/left_foot/penalties</span>
+        </div>
+        <p style="font-size:7.5px;color:var(--mu);margin-top:2px;">✦ Engineered: <code>shot_accuracy = on_target / max(total_attempts, 1)</code></p>
+        <h4 style="margin-top:4px;">Feature Groups (Compact View)</h4>
+        <p style="font-size:7.5px;line-height:1.3;">
+          <b>Shooting Volume:</b> total_attempts, blocked, off_target |
+          <b>Shooting Precision:</b> on_target, shot_accuracy |
+          <b>Attacking Activity:</b> assists, dribbles, offsides, corner_taken |
+          <b>Availability:</b> match_played, match_played_goal
+        </p>
+        <p style="font-size:7.5px;color:var(--mu);line-height:1.3;">
+          These groups combine opportunity (how often a player shoots), quality (how accurate shots are),
+          and consistency (how regularly the player appears), which together improve class separation.
+        </p>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bh">Results Analysis</div>
+      <div class="bb">
+        <h4>Model Accuracy</h4>
+        <table class="rt">
+          <tr><th>Model</th><th>Accuracy</th><th>Notes</th></tr>
+          <tr><td>Logistic Regression</td><td>78.18%</td><td style="font-size:7.5px;text-align:left;">Linear baseline</td></tr>
+          <tr><td class="best">Random Forest</td><td class="best">89.09%</td><td class="best" style="font-size:7.5px;text-align:left;">★ Tied best</td></tr>
+          <tr><td class="best">XGBoost</td><td class="best">89.09%</td><td class="best" style="font-size:7.5px;text-align:left;">★ Tied best</td></tr>
+        </table>
+        <h4>Confusion Matrix (Random Forest)</h4>
+        <div class="cmw">
+          <div>
+            <div style="font-size:7.5px;color:var(--mu);text-align:center;margin-bottom:2px;font-weight:600;">← Predicted →</div>
+            <div class="cmg">
+              <div class="cc"></div>
+              <div class="cc ch" style="justify-content:center;">Pred: 0</div>
+              <div class="cc ch" style="justify-content:center;">Pred: 1</div>
+              <div class="cc cx" style="writing-mode:vertical-rl;transform:rotate(180deg);">Act: 0</div>
+              <div class="cc ctn">TN<br><small>Low✓</small></div>
+              <div class="cc cfp">FP<br><small>Low✗</small></div>
+              <div class="cc cx" style="writing-mode:vertical-rl;transform:rotate(180deg);">Act: 1</div>
+              <div class="cc cfn">FN<br><small>High✗</small></div>
+              <div class="cc ctp">TP<br><small>High✓</small></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:7.5px;color:var(--mu);margin-top:3px;line-height:1.3;">
+          Top RF drivers: <b>match_played_goal</b>, <b>on_target</b>, <b>total_attempts</b>, and <b>shot_accuracy</b>.
+          Full feature-importance plot is shown in the panel below.
+        </p>
+      </div>
+    </div>
+
+    <div class="box s2">
+      <div class="bh ac">Visual Insights &amp; Model Understanding</div>
+      <div class="bb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;">
+          <div>
+            <h4>Target Class Distribution</h4>
+            <img src="high_scorer_distribution.png" style="width:100%;height:84px;object-fit:contain;background:#fff;border-radius:3px;margin-top:2px;">
+            <p style="font-size:7.5px;color:var(--mu);margin-top:3px;line-height:1.3;">
+              Dataset is imbalanced (~79% low scorers, ~21% high scorers), influencing model learning.
+            </p>
+          </div>
+          <div>
+            <h4>Goals vs Total Attempts</h4>
+            <img src="goals_vs_attempts.png" style="width:100%;height:84px;object-fit:contain;background:#fff;border-radius:3px;margin-top:2px;">
+            <p style="font-size:7.5px;color:var(--mu);margin-top:3px;line-height:1.3;">
+              Positive correlation shows players with more attempts tend to score more goals.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bh dk">Feature Importance</div>
+      <div class="bb">
+        <h4>Random Forest Feature Importance</h4>
+        <img src="feature_importance.png" style="width:100%;height:96px;object-fit:contain;background:#fff;border-radius:3px;margin-top:2px;">
+        <p style="font-size:7.5px;color:var(--mu);margin-top:3px;line-height:1.3;">
+          Importance scores highlight the strongest predictors used to classify high scorers.
+        </p>
+      </div>
+    </div>
+
+    <div class="box s2">
+      <div class="bh pu">Conclusion</div>
+      <div class="bb">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div>
+            <div class="ci"><div class="ico"><svg viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><p><span class="hl">RF and XGBoost are best performers</span>, clearly above Logistic Regression.</p></div>
+            <div class="ci"><div class="ico"><svg viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><p><span class="bl">Shot volume + precision</span> are the strongest predictive signals.</p></div>
+            <div class="ci"><div class="ico"><svg viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><p><span class="hl">shot_accuracy</span> adds clear value as an engineered feature.</p></div>
+          </div>
+          <div>
+            <div class="ci"><div class="ico"><svg viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><p><span class="bl">Leakage removal</span> was essential for realistic model evaluation.</p></div>
+            <div class="ci"><div class="ico"><svg viewBox="0 0 10 10" fill="none"><polyline points="2,5 4,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div><p><span class="hl">Next step:</span> hyperparameter tuning + xG/spatial features for further gains.</p></div>
+          </div>
+        </div>
+        <div style="background:#e2f0e6;border-left:3px solid #1b7a43;border-radius:3px;padding:6px 10px;margin-top:5px;">
+          <p style="color:#114a27;font-size:8.5px;font-weight:700;margin-bottom:2px;text-transform:uppercase;letter-spacing:.5px;">Key Takeaway</p>
+          <p style="color:#1a5c34;font-size:8.5px;line-height:1.4;">Tree-based models can reliably classify UCL high scorers from shot and participation statistics, making these features strong practical proxies for scoring potential.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bh dk">References</div>
+      <div class="bb" style="display:flex;flex-direction:column;justify-content:center;">
+        <ol class="rl">
+          <li data-n="[1]">Breiman, L. (2001). <em>Random Forests.</em> Machine Learning, 45. Springer.</li>
+          <li data-n="[2]">Chen &amp; Guestrin (2016). <em>XGBoost.</em> KDD '16, ACM.</li>
+          <li data-n="[3]">Pedregosa et al. (2011). <em>Scikit-learn.</em> JMLR 12.</li>
+          <li data-n="[4]">Kaggle: UCL 2021-22. <em>azminetoushikwasi.</em> kaggle.com/…/ucl-202122</li>
+          <li data-n="[5]">Géron, A. (2019). <em>Hands-On ML.</em> O'Reilly (2nd ed.).</li>
+          <li data-n="[6]">Pappalardo et al. (2019). <em>Soccer Match Events.</em> Scientific Data, 6.</li>
+        </ol>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</body>
+</html>

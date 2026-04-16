@@ -265,6 +265,28 @@
           <span class="tag-danger">✗ right_foot / left_foot / penalties (leaked)</span>
         </div>
         <p style="font-size:9.5px;color:var(--muted);margin-top:5px;">✦ Engineered feature via Domain Knowledge: <code>shot_accuracy = on_target / max(total_attempts, 1)</code></p>
+        <h4>Feature Insights (Why these inputs matter)</h4>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px;">
+          <div style="background:#e8f0fb;border-left:3px solid #1d6fa4;border-radius:3px;padding:6px 8px;font-size:9.5px;line-height:1.35;">
+            <b style="color:#1e3a5f;">Shot Volume & Threat</b><br>
+            <span style="color:#4b5563;">total_attempts, off_target, blocked capture attacking intent and pressure generation.</span>
+          </div>
+          <div style="background:#e8f0fb;border-left:3px solid #1d6fa4;border-radius:3px;padding:6px 8px;font-size:9.5px;line-height:1.35;">
+            <b style="color:#1e3a5f;">Shot Quality</b><br>
+            <span style="color:#4b5563;">on_target + shot_accuracy separate efficient finishers from low-efficiency shooters.</span>
+          </div>
+          <div style="background:#e8f0fb;border-left:3px solid #1d6fa4;border-radius:3px;padding:6px 8px;font-size:9.5px;line-height:1.35;">
+            <b style="color:#1e3a5f;">Consistency & Availability</b><br>
+            <span style="color:#4b5563;">match_played and match_played_goal reflect sustained opportunity across fixtures.</span>
+          </div>
+          <div style="background:#e8f0fb;border-left:3px solid #1d6fa4;border-radius:3px;padding:6px 8px;font-size:9.5px;line-height:1.35;">
+            <b style="color:#1e3a5f;">Creative/Attacking Context</b><br>
+            <span style="color:#4b5563;">assists, dribbles, offsides, corner_taken provide role-level attacking behavior context.</span>
+          </div>
+        </div>
+        <p style="font-size:9.5px;color:var(--muted);margin-top:6px;line-height:1.35;">
+          <span class="highlight">Leakage-safe design:</span> direct goal-output columns were removed, so the model learns predictive behavior patterns rather than memorizing target proxies.
+        </p>
       </div>
     </div>
 
