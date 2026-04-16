@@ -1,26 +1,37 @@
 # UCL Player Goal Predictor
 
-A machine learning project to classify UEFA Champions League players as **high scorers** or **low scorers** using attacking and shooting statistics.
+Predicting **high-scoring UEFA Champions League players** with machine learning using attacking and shot-based statistics.
 
-This repository contains:
-- data files (`attacking.csv`, `attempts.csv`, `goals.csv`)
-- the full notebook workflow (`notebooks_UCL_Goal_Predictor_UCL_Player_GoalPredictor.ipynb`)
-- poster artifacts (`UCL_Goal_Prediction_E-Poster.html`, `e-poster.html`)
-- supporting visual outputs (`high_scorer_distribution.png`, `goals_vs_attempts.png`, `feature_importance.png`)
+![Python](https://img.shields.io/badge/Python-ML-blue?style=for-the-badge)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-Modeling-orange?style=for-the-badge)
+![XGBoost](https://img.shields.io/badge/XGBoost-Boosting-green?style=for-the-badge)
+![Status](https://img.shields.io/badge/Project-Complete-success?style=for-the-badge)
 
 ---
 
-## Project Objective
+## Project Summary
 
-Predict whether a player is likely to be a high goal scorer using pre-goal indicators such as:
-- shot volume (`total_attempts`)
-- shot precision (`on_target`, engineered `shot_accuracy`)
-- attacking behavior (`assists`, `dribbles`, `offsides`, etc.)
-- match participation features
+This project builds a binary classifier to predict whether a player is a:
+- `1` -> **High Scorer** (goals >= 70th percentile)
+- `0` -> **Low Scorer**
 
-The prediction task is formulated as **binary classification**:
-- `1` = High Scorer (goals >= 70th percentile threshold)
-- `0` = Low Scorer
+using only pre-goal style features such as:
+- `total_attempts`, `on_target`, `off_target`, `blocked`
+- attacking contribution (`assists`, `dribbles`, `offsides`)
+- engineered feature: `shot_accuracy`
+
+The final comparison shows **tree-based models (Random Forest, XGBoost) outperform Logistic Regression**.
+
+---
+
+## Project Snapshot
+
+- **Domain:** Football analytics (UEFA Champions League)
+- **Task:** Binary classification
+- **Players after merge/cleaning:** ~546
+- **Models:** Logistic Regression, Random Forest, XGBoost
+- **Notebook:** `notebooks_UCL_Goal_Predictor_UCL_Player_GoalPredictor.ipynb`
+- **Poster files:** `UCL_Goal_Prediction_E-Poster.html`, `e-poster.html`
 
 ---
 
@@ -28,114 +39,118 @@ The prediction task is formulated as **binary classification**:
 
 Source: [Kaggle - UCL 2021/22 UEFA Champions League Player Stats](https://www.kaggle.com/datasets/azminetoushikwasi/ucl-202122-uefa-champions-league)
 
-### Files Used
+Files used in this repository:
 - `attacking.csv` (~176 rows)
 - `attempts.csv` (~546 rows)
 - `goals.csv` (~183 rows)
 
-After merging and cleaning, modeling is performed on approximately **546 players**.
+---
+
+## Workflow
+
+1. **Data cleaning and normalization**
+   - standardize column names and player keys
+   - merge attempts, goals, and attacking datasets
+   - handle missing values and remove duplicates
+
+2. **Feature engineering**
+   - create `shot_accuracy = on_target / max(total_attempts, 1)`
+   - prepare final feature set for training
+
+3. **Leakage prevention**
+   - remove direct goal-revealing fields (target leakage)
+
+4. **Training and evaluation**
+   - train/test split: 80/20 (`random_state=42`)
+   - evaluate Logistic Regression, Random Forest, and XGBoost
+   - compare accuracy + confusion matrix + feature importance
 
 ---
 
-## ML Workflow (Notebook)
+## Model Results
 
-Implemented in `notebooks_UCL_Goal_Predictor_UCL_Player_GoalPredictor.ipynb`.
+Notebook-reported accuracy:
+- **Logistic Regression:** `0.7818`
+- **Random Forest:** `0.9000`
+- **XGBoost:** `0.9182`
 
-### 1) Data Preparation
-- normalize column names
-- standardize `player_name` keys
-- merge datasets (attempts + goals + attacking)
-- remove duplicate/redundant columns
-- impute missing values
-
-### 2) Feature Engineering
-- create `shot_accuracy = on_target / max(total_attempts, 1)`
-- encode required categorical fields
-
-### 3) Leakage Prevention
-Goal-revealing columns are removed from model inputs (for example: direct goal outputs and conversion features) to avoid inflated/invalid performance.
-
-### 4) Train/Test Split
-- 80/20 split
-- `random_state=42`
-- scaling applied for Logistic Regression pipeline
-
-### 5) Models Compared
-- Logistic Regression
-- Random Forest
-- XGBoost
+Interpretation:
+- Logistic Regression provides a good linear baseline.
+- Random Forest improves performance significantly.
+- XGBoost gives the best score in this run.
 
 ---
 
-## Results Summary
+## Visual Insights
 
-From notebook outputs:
-- Logistic Regression: **0.7818**
-- Random Forest: **0.9000**
-- XGBoost: **0.9182**
+### 1) Target Class Distribution
+![Target Class Distribution](high_scorer_distribution.png)
+Class imbalance exists (low scorers dominate), which can influence model behavior.
 
-Poster versions in this repository present the same comparative conclusion that **tree-based models outperform Logistic Regression**, with Random Forest and XGBoost as top performers.
+### 2) Goals vs Total Attempts
+![Goals vs Attempts](goals_vs_attempts.png)
+Players with more attempts generally tend to score more goals (positive trend).
 
----
-
-## Visualizations Included
-
-- `high_scorer_distribution.png` - class distribution overview
-- `goals_vs_attempts.png` - goals vs attempt correlation
-- `feature_importance.png` - top feature importance view
-
-These are embedded in both poster HTML files.
+### 3) Feature Importance (Random Forest)
+![Feature Importance](feature_importance.png)
+Key drivers include shot-related and match-participation features.
 
 ---
 
-## Poster Files
+## Repository Structure
 
-### `UCL_Goal_Prediction_E-Poster.html`
-- full rich poster version
-- includes method, results, visual insights, feature importance, conclusion, and references
-
-### `e-poster.html`
-- compact single-page A4 landscape version optimized for PDF export
-- includes visual insights and feature importance images with constrained layout for print fit
+```text
+UCL goal predictor/
+|- attacking.csv
+|- attempts.csv
+|- goals.csv
+|- notebooks_UCL_Goal_Predictor_UCL_Player_GoalPredictor.ipynb
+|- UCL_Goal_Prediction_E-Poster.html
+|- e-poster.html
+|- high_scorer_distribution.png
+|- goals_vs_attempts.png
+|- feature_importance.png
+|- README.md
+```
 
 ---
 
-## How to Run the Notebook
+## Run Locally
 
-## 1) Create and activate environment
-
+1) Create virtual environment
 ```bash
 python -m venv .venv
 .venv\Scripts\activate
 ```
 
-## 2) Install dependencies
-
+2) Install dependencies
 ```bash
 pip install pandas numpy matplotlib seaborn scikit-learn xgboost jupyter
 ```
 
-## 3) Start Jupyter
-
+3) Launch notebook
 ```bash
 jupyter notebook
 ```
 
-Open:
+Then open:
 `notebooks_UCL_Goal_Predictor_UCL_Player_GoalPredictor.ipynb`
 
 ---
 
-## Export Poster to PDF (Single Page)
+## Poster and PDF Export
 
-Use `e-poster.html`:
-1. Open in a Chromium-based browser (Chrome/Edge).
+- `UCL_Goal_Prediction_E-Poster.html`: full poster design
+- `e-poster.html`: compact single-page A4 landscape poster
+
+To export PDF from `e-poster.html`:
+1. Open file in Chrome/Edge.
 2. Press `Ctrl + P`.
-3. Choose:
-   - Paper size: **A4**
+3. Set:
+   - Paper: **A4**
    - Orientation: **Landscape**
    - Margins: **None**
-   - Scale: **100%** (or fit to page if needed)
+   - Scale: **100%** (or Fit to page)
 4. Save as PDF.
 
 ---
@@ -147,12 +162,12 @@ Use `e-poster.html`:
 - Matplotlib, Seaborn
 - scikit-learn
 - XGBoost
-- HTML/CSS (poster design and PDF-ready layout)
+- HTML/CSS (poster layout and print formatting)
 
 ---
 
 ## Author
 
 **Aryan Dev Tyagi**  
-Course: **BCAI-601-MLT (Machine Learning Techniques), 2025-26**
+Course: **BCAI-601-MLT - Machine Learning Techniques (2025-26)**
 
